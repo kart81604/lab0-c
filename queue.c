@@ -9,7 +9,70 @@
  * following line.
  *   cppcheck-suppress nullPointer
  */
+struct list_head *merge_two_list(struct list_head *L1, struct list_head *L2)
+{
+    struct list_head *head = NULL, **node, *tmp;
+    int len_L1 = q_size(L1) + 1, len_L2 = q_size(L2) + 1;
 
+    node = strcmp(list_entry(L1, element_t, list)->value,
+                  list_entry(L2, element_t, list)->value) < 0
+               ? &L1
+               : &L2;
+    strcmp(list_entry(L1, element_t, list)->value,
+           list_entry(L2, element_t, list)->value) < 0
+        ? len_L1--
+        : len_L2--;
+    head = *node;
+    *node = (*node)->next;
+    list_del_init(head);
+    while (len_L1 > 0 && len_L2 > 0) {
+        node = strcmp(list_entry(L1, element_t, list)->value,
+                      list_entry(L2, element_t, list)->value) < 0
+                   ? &L1
+                   : &L2;
+        strcmp(list_entry(L1, element_t, list)->value,
+               list_entry(L2, element_t, list)->value) < 0
+            ? len_L1--
+            : len_L2--;
+        *node = (*node)->next;
+        tmp = (*node)->prev;
+        list_del_init(tmp);
+        list_add_tail(tmp, head);
+    }
+    if (len_L1 <= 0) {
+        tmp = L2->prev;
+        L2->prev->next = head;
+        L2->prev = head->prev;
+        head->prev->next = L2;
+        head->prev = tmp;
+    }
+    if (len_L2 <= 0) {
+        tmp = L1->prev;
+        L1->prev->next = head;
+        L1->prev = head->prev;
+        head->prev->next = L1;
+        head->prev = tmp;
+    }
+    return head;
+}
+
+struct list_head *merge_sort(struct list_head *start)
+{
+    if (list_empty(start) != 0)
+        return start;
+    struct list_head *forward = start, *back = start->prev, *tail = start->prev;
+    do {
+        forward = forward->next;
+        back = back->prev;
+    } while (forward != back && forward->prev != back);
+    if (forward == back)
+        forward = forward->next;
+    start->prev = back;
+    back->next = start;
+    forward->prev = tail;
+    tail->next = forward;
+    return merge_two_list(merge_sort(start), merge_sort(forward));
+}
 
 /* Create an empty queue */
 struct list_head *q_new()
@@ -196,7 +259,20 @@ void q_reverseK(struct list_head *head, int k)
 }
 
 /* Sort elements of queue in ascending order */
-void q_sort(struct list_head *head) {}
+void q_sort(struct list_head *head)
+{
+    if (!head || list_empty(head) != 0)
+        return;
+
+    struct list_head *start = head->next;
+    list_del_init(head);
+    struct list_head *init = merge_sort(start);
+    head->next = init;
+    head->prev = init->prev;
+    init->prev->next = head;
+    init->prev = head;
+    return;
+}
 
 /* Remove every node which has a node with a strictly greater value anywhere to
  * the right side of it */
