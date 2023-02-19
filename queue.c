@@ -37,7 +37,7 @@ bool q_insert_head(struct list_head *head, char *s)
 {
     element_t *new = (element_t *) malloc(sizeof(element_t));
     char *new_s = (char *) malloc((strlen(s) + 1) * sizeof(char));
-    if (!new || !new_s)
+    if (!new || !new_s || !head)
         return false;
     memcpy(new_s, s, strlen(s) + 1);
     new->value = new_s;
