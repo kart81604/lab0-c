@@ -166,13 +166,10 @@ void q_reverse(struct list_head *head)
 {
     if (!head || list_empty(head) != 0)
         return;
-    struct list_head *nxt = head->next;
     struct list_head *cur = head->next;
-    while (cur != nxt) {
-        struct list_head *tmp = cur->prev;
-        cur->prev = cur->next;
-        cur->next = tmp;
-        cur = cur->prev;
+    while (cur != head) {
+        cur = cur->next;
+        list_move(cur->prev, head);
     }
     return;
 }
