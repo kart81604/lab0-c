@@ -79,6 +79,8 @@ struct list_head *q_new()
 {
     struct list_head *li =
         (struct list_head *) malloc(sizeof(struct list_head));
+    if (!li)
+        return NULL;
     INIT_LIST_HEAD(li);
     return li;
 }
@@ -168,15 +170,15 @@ bool q_delete_mid(struct list_head *head)
 {
     if (!head)
         return false;
-    struct list_head **forward, **back;
-    forward = &head->next;
-    back = &head->prev;
-    while (*forward != *back && *forward != (*back)->next) {
-        forward = &(*forward)->next;
-        back = &(*back)->prev;
+    struct list_head *forward, *back;
+    forward = head->next;
+    back = head->prev;
+    while (forward != back && forward != back->next) {
+        forward = forward->next;
+        back = back->prev;
     }
-    element_t *cur = list_entry(*forward, element_t, list);
-    list_del_init(*forward);
+    element_t *cur = list_entry(forward, element_t, list);
+    list_del_init(forward);
     q_release_element(cur);
     return true;
     // https://leetcode.com/problems/delete-the-middle-node-of-a-linked-list/
@@ -187,18 +189,26 @@ bool q_delete_dup(struct list_head *head)
 {
     if (!head)
         return false;
-    struct list_head **cur, **test;
-    cur = &head->next;
-    while (cur != &head) {
-        test = &(*cur)->next;
-        while (test != &head &&
-               !strcmp(list_entry(*cur, element_t, list)->value,
-                       list_entry(*test, element_t, list)->value)) {
-            list_del_init(*test);
-            q_release_element(list_entry(*test, element_t, list));
-            test = &(*cur)->next;
+    struct list_head *cur, *del;
+    int count = 0;
+    cur = head->next;
+    while (cur != head) {
+        struct list_head *test = cur->next;
+        while (test != head &&
+               strcmp(list_entry(cur, element_t, list)->value,
+                      list_entry(test, element_t, list)->value) == 0) {
+            count++;
+            list_del_init(test);
+            q_release_element(list_entry(test, element_t, list));
+            test = cur->next;
         }
-        cur = test;
+        cur = cur->next;
+        if (count) {
+            del = cur->prev;
+            list_del_init(del);
+            q_release_element(list_entry(del, element_t, list));
+            count = 0;
+        }
     }
     return true;
     // https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii/
@@ -250,7 +260,7 @@ void q_reverseK(struct list_head *head, int k)
             cur = cur->next;
             list_move(cur->prev, cur_head);
         }
-        cur_head = cur;
+        cur_head = cur->prev;
         cur = cur_head->next;
         len = len - k;
     }
