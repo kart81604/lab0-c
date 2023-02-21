@@ -308,6 +308,23 @@ int q_descend(struct list_head *head)
 /* Merge all the queues into one sorted queue, which is in ascending order */
 int q_merge(struct list_head *head)
 {
+    if (!head || list_empty(head) != 0)
+        return 0;
+    struct list_head *ret_head, *cur_head = head->next->next, *sorted;
+    ret_head = list_entry(head->next, queue_contex_t, chain)->q;
+    sorted = ret_head->next;
+    list_del_init(ret_head);
+    while (cur_head != head) {
+        struct list_head *first =
+            list_entry(cur_head, queue_contex_t, chain)->q->next;
+        list_del_init(first->prev);
+        sorted = merge_two_list(sorted, first);
+        cur_head = cur_head->next;
+    }
+    ret_head->next = sorted;
+    ret_head->prev = sorted->prev;
+    sorted->prev->next = ret_head;
+    sorted->prev = ret_head;
     // https://leetcode.com/problems/merge-k-sorted-lists/
-    return 0;
+    return q_size(ret_head);
 }
