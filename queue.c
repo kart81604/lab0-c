@@ -12,41 +12,31 @@
 struct list_head *merge_two_list(struct list_head *L1, struct list_head *L2)
 {
     struct list_head *head = NULL, **node, *tmp;
-    int len_L1 = q_size(L1) + 1, len_L2 = q_size(L2) + 1;
 
     node = strcmp(list_entry(L1, element_t, list)->value,
                   list_entry(L2, element_t, list)->value) < 0
                ? &L1
                : &L2;
-    strcmp(list_entry(L1, element_t, list)->value,
-           list_entry(L2, element_t, list)->value) < 0
-        ? len_L1--
-        : len_L2--;
     head = *node;
     *node = (*node)->next;
     list_del_init(head);
-    while (len_L1 > 0 && len_L2 > 0) {
+    while ((*node) != head && (*node)->next != head) {
         node = strcmp(list_entry(L1, element_t, list)->value,
                       list_entry(L2, element_t, list)->value) < 0
                    ? &L1
                    : &L2;
-        strcmp(list_entry(L1, element_t, list)->value,
-               list_entry(L2, element_t, list)->value) < 0
-            ? len_L1--
-            : len_L2--;
         *node = (*node)->next;
         tmp = (*node)->prev;
-        list_del_init(tmp);
+        list_del(tmp);
         list_add_tail(tmp, head);
     }
-    if (len_L1 <= 0) {
+    if (L1 == head || L1->next == head) {
         tmp = L2->prev;
         L2->prev->next = head;
         L2->prev = head->prev;
         head->prev->next = L2;
         head->prev = tmp;
-    }
-    if (len_L2 <= 0) {
+    } else {
         tmp = L1->prev;
         L1->prev->next = head;
         L1->prev = head->prev;
