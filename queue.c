@@ -90,10 +90,16 @@ void q_free(struct list_head *l)
 /* Insert an element at head of queue */
 bool q_insert_head(struct list_head *head, char *s)
 {
-    element_t *new = (element_t *) malloc(sizeof(element_t));
-    char *new_s = (char *) malloc((strlen(s) + 1) * sizeof(char));
-    if (!new || !new_s || !head)
+    if (!head)
         return false;
+    element_t *new = (element_t *) malloc(sizeof(element_t));
+    if (!new)
+        return false;
+    char *new_s = (char *) malloc((strlen(s) + 1) * sizeof(char));
+    if (!new_s) {
+        free(new);
+        return false;
+    }
     memcpy(new_s, s, strlen(s) + 1);
     new->value = new_s;
     list_add(&new->list, head);
@@ -103,10 +109,16 @@ bool q_insert_head(struct list_head *head, char *s)
 /* Insert an element at tail of queue */
 bool q_insert_tail(struct list_head *head, char *s)
 {
-    element_t *new = (element_t *) malloc(sizeof(element_t));
-    char *new_s = (char *) malloc((strlen(s) + 1) * sizeof(char));
-    if (!new || !new_s)
+    if (!head)
         return false;
+    element_t *new = (element_t *) malloc(sizeof(element_t));
+    if (!new)
+        return false;
+    char *new_s = (char *) malloc((strlen(s) + 1) * sizeof(char));
+    if (!new_s) {
+        free(new);
+        return false;
+    }
     memcpy(new_s, s, strlen(s) + 1);
     new->value = new_s;
     list_add_tail(&new->list, head);
