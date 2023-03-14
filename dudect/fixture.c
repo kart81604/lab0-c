@@ -109,6 +109,7 @@ static void update_statistics(const int64_t *exec_times,
         /* do a t-test on the execution time */
         t_push(ttest_ctxs[0], difference, classes[i]);
 
+        // t-test on cropped execution times, for several cropping thresholds.
         for (size_t crop_index = 0; crop_index < DUDECT_NUMBER_PERCENTILES;
              crop_index++) {
             if (difference < percentiles[crop_index]) {
@@ -206,6 +207,7 @@ static bool doit(int mode)
     free(exec_times);
     free(classes);
     free(input_data);
+    free(percentiles);
 
     return ret;
 }
